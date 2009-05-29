@@ -1,0 +1,9 @@
+* README for make-common *
+
+make-common is a makefile (common.1.mk) to be included in the primary Makefiles
+for other projects.  It provides some common functionality and a uses a common
+set of variables.
+
+The two main targets make-common provides are:
+- `make stow': Installs the package using stow
+- `make dist': Creates a distribution tarball for the package
