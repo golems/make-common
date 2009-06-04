@@ -11,10 +11,10 @@ PREFIX := /usr/local
 INCLUDEDIR := .
 
 # Binary Files
-BINFILES := hellofortranexample
+BINFILES := hellofortranexample.exe
 
 # Library files
-LIBFILES := libhellofortranexample.so
+LIBFILES :=
 
 # Directory of files and links to copy verbatim
 #VERBATIMDIR := verbatim
@@ -31,18 +31,21 @@ DISTPATH := $(PWD)
 # Path to copy HTML Doxygen documentation
 #DOXPATH := $(HOME)/prism/public_html/dox
 
-f95 := gfortran
-cc := gcc
-ld := ld
 
+
+
+
+f95 := wine "c:\Program Files\gfortran\bin\gfortran.exe"
+cc := wine "c:\Program Files\gfortran\bin\gcc.exe"
+
+ld := wine "c:\Program Files\gfortran\bin\ld.exe"
+
+LDFLAGS := -shared
+CFLAGS := -I"c:\Program Files\gfortran\include"
 
 include /usr/local/share/make-common/common.1.mk
 
-
-
-CFLAGS :=
-
-hellofortranexample: main.o hellof.o
+hellofortranexample.exe: main.o hellof.o
 	$(cc) hellof.o main.o -o $@ -lgfortran
 
 hellof.o: hellof.f95
@@ -51,7 +54,7 @@ hellof.o: hellof.f95
 main.o: main.c hellofortranexample.h
 	$(cc) $(CFLAGS) -c $<
 
-$(eval $(call LINKLIB, libhellofortranexample.so, hellof.o))
+$(eval $(call LINKLIB, libhellofortranexample.dll, hellof.o))
 
 clean:
-	rm -rvf *.o *.so $(BINFILES) dist *.tar.lzma *.mod
+	rm -rvf *.o *.so $(BINFILES) dist *.tar.lzma *.mod *.exe

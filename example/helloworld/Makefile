@@ -31,7 +31,9 @@ DISTPATH := $(PWD)
 # Path to copy HTML Doxygen documentation
 #DOXPATH := $(HOME)/prism/public_html/dox
 
-
+cc := gcc
+ld := ld
+LDFLAGS := -shared
 
 include /usr/local/share/make-common/common.1.mk
 
