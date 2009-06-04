@@ -39,7 +39,11 @@
 #
 # # Path to copy HTML Doxygen documentation
 # DOXPATH := $(HOME)/prism/public_html/dox
-
+#
+# # Compiler and linker to use
+# cc := gcc
+# f95 := gfortran
+# ld := ld
 
 
 PROJVER := $(PROJECT)-$(VERSION)
@@ -50,7 +54,7 @@ STOWPREFIX := $(STOWBASE)/$(STOWDIR)
 
 define LINKLIB
 $(1): $(2)
-	gcc -shared -Wl,-soname,$(strip $(1)) -o $(1) $(2)
+	$(ld) $(LDFLAGS) -o $(1) $(2)
 endef
 
 default: $(BINFILES) $(LIBFILES)

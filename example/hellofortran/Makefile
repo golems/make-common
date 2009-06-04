@@ -34,7 +34,7 @@ DISTPATH := $(PWD)
 f95 := gfortran
 cc := gcc
 ld := ld
-
+LDFLAGS := -shared
 
 include /usr/local/share/make-common/common.1.mk
 
