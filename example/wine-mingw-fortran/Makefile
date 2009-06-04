@@ -14,7 +14,7 @@ INCLUDEDIR := .
 BINFILES := hellofortranexample.exe
 
 # Library files
-LIBFILES :=
+LIBFILES := libhellofortranexample.a
 
 # Directory of files and links to copy verbatim
 #VERBATIMDIR := verbatim
@@ -37,16 +37,19 @@ DISTPATH := $(PWD)
 
 f95 := wine "c:\Program Files\gfortran\bin\gfortran.exe"
 cc := wine "c:\Program Files\gfortran\bin\gcc.exe"
-
 ld := wine "c:\Program Files\gfortran\bin\ld.exe"
+ar := wine "c:\Program Files\gfortran\bin\ar.exe"
 
 LDFLAGS := -shared
 CFLAGS := -I"c:\Program Files\gfortran\include"
 
 include /usr/local/share/make-common/common.1.mk
 
-hellofortranexample.exe: main.o hellof.o
-	$(cc) hellof.o main.o -o $@ -lgfortran
+hellofortranexample.exe: main.o libhellofortranexample.a
+	$(cc) main.o -L. -lhellofortranexample -o $@ -lgfortran
+
+libhellofortranexample.a: hellof.o
+	$(ar) rcs $@ $<
 
 hellof.o: hellof.f95
 	$(f95) -c $<
