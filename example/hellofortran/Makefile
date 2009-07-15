@@ -1,26 +1,18 @@
+## A makefile demostrating that fortran compilation "Just Works"
+## Also shows linking against a static and shared library
+
+
 # Project Name
 PROJECT := helloworldexample
 
 # Project Version
 VERSION := 1.0
 
-# root to install to for `make install'
-PREFIX := /usr/local
-
-# Directory containing C/C++ headers
-INCLUDEDIR := .
-
 # Binary Files
 BINFILES := hellofortranexample
 
 # Library files
 LIBFILES := libhellofortranexample.so libhellofortranexample.a
-
-# Directory of files and links to copy verbatim
-#VERBATIMDIR := verbatim
-
-# if you use stow, root of your stow package directory
-STOWBASE := /usr/local/stow
 
 # Files to tar up for distribution
 DISTFILES := Makefile hello.c helloworldexample.h
@@ -31,32 +23,20 @@ DISTPATH := $(PWD)
 # Path to copy HTML Doxygen documentation
 #DOXPATH := $(HOME)/prism/public_html/dox
 
-f95 := gfortran
-cc := gcc
-ld := ld
-ar := ar
-LDFLAGS := -shared
+default: all
 
-include /usr/local/share/make-common/common.1.mk
+include ../../common.1.mk
 
+all: $(BINFILES) $(LIBFILES)
 
-
-CFLAGS :=
-
-hellofortranexample: main.o libhellofortranexample.a
-	$(cc) main.o -o $@ -lgfortran libhellofortranexample.a
+# target to link our binary agains shared libgfortran.so and static hellofortranexample.a
+$(call LINKBIN, hellofortranexample, main.o, gfortran, hellofortranexample)
 
 libhellofortranexample.a: hellof.o
 	$(ar) rcs $@ $<
 
-
-hellof.o: hellof.f95
-	$(f95) -c $<
-
-main.o: main.c hellofortranexample.h
-	$(cc) $(CFLAGS) -c $<
-
-$(eval $(call LINKLIB, libhellofortranexample.so, hellof.o))
+# make a shared library, just for kicks
+$(call LINKLIB, hellofortranexample, hellof.o)
 
 clean:
 	rm -rvf *.o *.so $(BINFILES) dist *.tar.lzma *.mod *.a

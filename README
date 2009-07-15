@@ -4,6 +4,17 @@ make-common is a makefile (common.1.mk) to be included in the primary Makefiles
 for other projects.  It provides some common functionality and a uses a common
 set of variables.
 
-The two main targets make-common provides are:
+It will automatically generate dependency information for C and C++.
+
+It provides a default set of variables and will try to guess the correct
+directories for source, building, binaries and libraries.
+
+It provides default rules for building C, C++, Objective-C, and Fortran that
+will use the right directories for source, includes, binaries, and libraries.
+
+See the various examples for how to use the common makefile.
+
+The three main targets make-common provides are:
+- `make env': lists the variables set in the makefile
 - `make stow': Installs the package using stow
 - `make dist': Creates a distribution tarball for the package

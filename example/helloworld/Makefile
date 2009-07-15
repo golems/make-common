@@ -1,26 +1,18 @@
+## A basic make-common project
+## Uses a couple of source files and generates a shared library
+
+
 # Project Name
 PROJECT := helloworldexample
 
 # Project Version
 VERSION := 1.0
 
-# root to install to for `make install'
-PREFIX := /usr/local
-
-# Directory containing C/C++ headers
-INCLUDEDIR := .
-
 # Binary Files
 BINFILES := helloworldexample
 
 # Library files
 LIBFILES := libhelloworldexample.so
-
-# Directory of files and links to copy verbatim
-#VERBATIMDIR := verbatim
-
-# if you use stow, root of your stow package directory
-STOWBASE := /usr/local/stow
 
 # Files to tar up for distribution
 DISTFILES := Makefile hello.c helloworldexample.h
@@ -31,23 +23,20 @@ DISTPATH := $(PWD)
 # Path to copy HTML Doxygen documentation
 #DOXPATH := $(HOME)/prism/public_html/dox
 
-cc := gcc
-ld := ld
-LDFLAGS := -shared
 
-include /usr/local/share/make-common/common.1.mk
+## define the default target before the include
+default: all
 
+include ../../common.1.mk
 
-helloworldexample: hello.o main.o
-	gcc hello.o main.o -o $@
+## use the expanded variables after the include
+all: $(LIBFILES) $(BINFILES)
 
-hello.o: hello.c helloworldexample.h
-	gcc -c $<
+# generate the target to link our binary
+$(call LINKBIN, helloworldexample, hello.o main.o)
 
-main.o: main.c helloworldexample.h
-	gcc -c $<
-
-$(eval $(call LINKLIB, libhelloworldexample.so, hello.o))
+# generate the target to link our library
+$(call LINKLIB, helloworldexample, hello.o)
 
 clean:
-	rm -rvf *.o *.so $(BINFILES) dist *.tar.lzma
+	rm -rvf *.o $(LIBFILES) $(BINFILES) dist *.tar.lzma
