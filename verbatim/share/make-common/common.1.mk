@@ -265,11 +265,12 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.m
 
 $(DEPDIR)/%.c.d: $(SRCDIR)/%.c
 	@mkdir -pv $(dir $@)
-	echo $(dir $<)`$(cc) $(CFLAGS) -MM  $<` > $@
+	echo -n $(dir $<)  > $@
+	$(cc) $(CFLAGS) -MM  $< >> $@
 
 $(DEPDIR)/%.cpp.d: $(SRCDIR)/%.cpp
-	@mkdir -pv $(dir $@)
-	echo $(dir $<)`$(cc) $(CPPFLAGS) -MM $<` > $@
+	echo -n $(dir $<)  > $@
+	$(CC) $(CPPFLAGS) -MM  $< >> $@
 
 
 ## Convenience method for linking shared libraries
@@ -322,14 +323,14 @@ stow: default
 		install --mode 755 $(LIBFILES) $(STOWPREFIX)/lib; \
 	fi
 	@echo $(TERM_LIGHT_GREEN)'* INSTALLING HEADERS *'$(TERM_NO_COLOR)
-	if test -d "$(INCLUDEDIR)"; then \
+	if test -n "$(INCLUDEDIR)"; then \
 		mkdir -p $(STOWPREFIX)/include; \
 		cd $(INCLUDEDIR) && \
 		install --mode 644 `find -regex '^.*\.h'`\
 		  $(STOWPREFIX)/include; \
 	fi
 	@echo $(TERM_LIGHT_GREEN)'* INSTALLING VERBATIM *'$(TERM_NO_COLOR)
-	if test -d "$(VERBATIMDIR)"; then \
+	if test -n "$(VERBATIMDIR)"; then \
 		mkdir -p $(STOWPREFIX); \
 		cp -TLr $(VERBATIMDIR) $(STOWPREFIX); \
 	fi
