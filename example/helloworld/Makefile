@@ -32,6 +32,7 @@ include ../../common.1.mk
 ## use the expanded variables after the include
 all: $(LIBFILES) $(BINFILES)
 
+
 # generate the target to link our binary
 $(call LINKBIN, helloworldexample, hello.o main.o)
 

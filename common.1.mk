@@ -1,7 +1,11 @@
 ## FILE: common.1.mk
 ## AUTHOR: Neil Dantam
 ##
-## Some common routines for makefiles
+## Some common routines for makefiles.
+##
+## This is intended for nonrecursive builds.
+## See: "Recursive Make Considered Harmful"
+##      http://miller.emu.id.au/pmiller/books/rmch/
 ##
 ## Almost surely requires gmake.
 ## You should use a GNU userland.
@@ -100,42 +104,49 @@ ifndef BINDIR
 BINDIR := $(shell if [ -d $(BUILDDIR)/bin ]; then echo $(BUILDDIR)/bin; else echo $(BUILDDIR); fi)
 endif
 
-ifndef LIBDIRS
-LIBDIRS = $(LIBDIR)
-endif
+# directory to search for library includes
+LIBDIRS ?= $(LIBDIR)
 
-ifndef PREFIX
-PREFIX := /usr/local
-endif
+# Place to install files
+PREFIX ?= /usr/local
+
+# Directory to put distribution tarball
+DISTPATH ?= .
 
 ## default compiler flags
 
 # C
-ifndef CFLAGS
-CFLAGS := -g -I$(INCLUDEDIR)
-endif
+CFLAGS ?= -g -I$(INCLUDEDIR)
 
 # C++
-ifndef CPPFLAGS
-CPPFLAGS = $(CFLAGS)
-endif
+CPPFLAGS ?= $(CFLAGS)
 
 
 # Objective-C
-ifndef OBJCFLAGS
-OBJCFLAGS = $(CFLAGS)
-endif
+OBJCFLAGS ?= $(CFLAGS)
 
 
 # Fortran
-ifndef FFLAGS
-FFLAGS := -g -J$(INCLUDEDIR)
-endif
+FFLAGS ?= -g -J$(INCLUDEDIR)
 
 # Linker
-ifndef LDFLAGS
-LDFLAGS := -shared
+LDFLAGS ?= -shared
+
+## Debian Package Flags
+
+# directory for building deb package
+DEBDIR ?= debian
+
+# directory to put .deb files
+DEBDISTDIR ?= $(DISTPATH)
+
+ifndef DEBCONTROLBASE
+DEBCONTROL := $(shell if [ -f control ]; then echo control; fi)
 endif
+
+DEBPKGVERSION ?= 1
+
+DEBPREFIX ?= /usr
 
 ## default source files
 
@@ -146,14 +157,12 @@ SRCFILES := $(shell find .  \( -type d \( -name .svn -o -name .git \)  -prune \)
 # Would also fail if files are not yet svn add'ed
 endif
 
-ifndef VERBATIMDIR
-VERBATIMDIR := verbatim
-endif
+VERBATIMDIR ?= verbatim
 
 # if you use stow, root of your stow package directory
-ifndef STOWBASE
-STOWBASE := $(PREFIX)/stow
-endif
+STOWBASE ?= $(PREFIX)/stow
+
+DEPDIR ?= .deps
 
 comma := ,
 
@@ -161,13 +170,13 @@ PROJVER := $(PROJECT)-$(VERSION)
 
 STOWDIR := $(PROJVER)
 STOWPREFIX := $(STOWBASE)/$(STOWDIR)
-DEPDIR := .deps
 
 
 ## Dependency Files
 ## (gcc will generate dependency info for C and C++ files and spit out make rules)
 ## We use one dep file for each source file to minimize dependency regenerations
-DEPFILES := $(addprefix $(DEPDIR)/,$(addsuffix .d, $(filter %.c %.cpp, $(SRCFILES))))
+## as recommended by the GNU Make manual.
+DEPFILES := $(addprefix $(DEPDIR)/,$(addsuffix .d, $(filter %.c %.cpp %.cc %.m, $(SRCFILES))))
 
 #####################
 ## FIXUP VARIABLES ##
@@ -179,7 +188,9 @@ BINFILES := $(addprefix $(BINDIR)/, $(BINFILES))
 #######################
 ## PORTABILITY TESTS ##
 #######################
+# Not much here yet
 
+# (courtesy of Jon Olson)
 ## OS X uses a different library extension, play nice
 ifeq ($(PLATFORM),Darwin)
 # somebody who can actually stomach "The Apple Way" should test this...
@@ -189,6 +200,40 @@ else
 SHARED_LIB_SUFFIX := .so
 endif
 
+
+###############
+## FUNCTIONS ##
+###############
+
+## Convenience method for linking shared libraries
+## For some reason, automatic variables don't work here...
+## call with  $(call LINKLIB, name_of_lib, list of object files)
+## ie with $(call LINKLIB, frob, foo.o bar.o) # gives libfrob.so
+define LINKLIB1
+$(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX): $(2)
+	$(ld) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX) $(2)
+endef
+
+# this def does the eval so the caller doesn't have to
+define LINKLIB
+$(eval $(call LINKLIB1, $1, $2))
+endef
+
+## Convenience method for linking binaries
+## call with $(call LINKBIN, name_of_binary, object files, shared libs, static libs)
+## ie  $(call LINKBIN frob, foo.o, bar, bif)
+define LINKBIN1
+$(strip $(1)): $(2)  $(addsuffix .a, $(addprefix lib, $(4)))
+	$(cc) $(CFLAGS) -o $(strip $(1)) $(2) \
+	  $(addprefix -L, $(LIBDIRS))  \
+	  $(if $(strip $(4)), -Wl$(comma)-Bstatic) $(addprefix -l, $(strip $(4)))  \
+	  $(if $(strip $(3)), -Wl$(comma)-Bdynamic) $(addprefix -l, $(3)) $(foo)
+endef
+
+# this def does the eval so the caller doesn't have to
+define LINKBIN
+$(eval $(call LINKBIN1, $1, $2, $3, $4))
+endef
 
 
 
@@ -224,118 +269,66 @@ env:
 	@echo LIBFILES: $(LIBFILES)
 	@echo BINFILES: $(BINFILES)
 	@echo SHARED_LIB_SUFFIX: $(SHARED_LIB_SUFFIX)
+	@echo DEBDIR: $(DEBDIR)
+	@echo DEBDISTDIR: $(DEBDISTDIR)
+	@echo DEBCONTROLBASE: $(DEBCONTROLBASE)
+	@echo DEBPKGVERSION: $(DEBPKGVERSION)
 
 
 
-
-## Include the auto-generated dependencies
--include $(DEPFILES)
-
-
-
-
-#####################
-## DEFAULT TARGETS ##
-#####################
-
-## These create targets to build C, C++, Fortran, and Objective C
-
-$(BUILDDIR)/%.o: $(SRCDIR)/%.c
-	@mkdir -vp $(dir $(@))
-	$(cc) $(CFLAGS) -c $< -o $@
-
-$(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
-	@mkdir -vp $(dir $(@))
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(BUILDDIR)/%.o: $(SRCDIR)/%.cc
-	@mkdir -vp $(dir $(@))
-	$(CC) $(CPPFLAGS) -c $< -o $@
-
-$(BUILDDIR)/%.o: $(SRCDIR)/%.f95
-	@mkdir -vp $(dir $(@))
-	$(f95) -J$(INCLUDEDIR) -c $< -o $@
-
-$(BUILDDIR)/%.o: $(SRCDIR)/%.m
-	@mkdir -vp $(dir $(@))
-	$(objcc) $(OBJCFLAGS) -c $< -o $@
-
-## Rules to generate dependecy info
-## Hopefully gfortran will do this too, soon
-
-$(DEPDIR)/%.c.d: $(SRCDIR)/%.c
-	@mkdir -pv $(dir $@)
-	echo -n $(dir $<)  > $@
-	$(cc) $(CFLAGS) -MM  $< >> $@
-
-$(DEPDIR)/%.cpp.d: $(SRCDIR)/%.cpp
-	echo -n $(dir $<)  > $@
-	$(CC) $(CPPFLAGS) -MM  $< >> $@
-
-
-## Convenience method for linking shared libraries
-## For some reason, automatic variables don't work here...
-## call with  $(call LINKLIB, name_of_lib, list of object files)
-## ie with $(call LINKLIB, frob, foo.o bar.o) # gives libfrob.so
-define LINKLIB1
-$(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX): $(2)
-	$(ld) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX) $(2)
-endef
-
-# this def does the eval so the caller doesn't have to
-define LINKLIB
-$(eval $(call LINKLIB1, $1, $2))
-endef
-
-#$(addprefix -llib, $(addsuffix $(4), .a))
-
-
-## Convenience method for linking binaries
-## call with $(call LINKLIB, name_of_binary, object files, shared libs, static libs)
-## ie  $(call LINKBIN frob, foo.o, bar, bif)
-define LINKBIN1
-$(strip $(1)): $(2)  $(addsuffix .a, $(addprefix lib, $(4)))
-	$(cc) $(CFLAGS) -o $(strip $(1)) $(2) \
-	  $(addprefix -L, $(LIBDIRS))  \
-	  $(if $(strip $(4)), -Wl$(comma)-Bstatic) $(addprefix -l, $(strip $(4)))  \
-	  $(if $(strip $(3)), -Wl$(comma)-Bdynamic) $(addprefix -l, $(3))
-endef
-
-# this def does the eval so the caller doesn't have to
-define LINKBIN
-$(eval $(call LINKBIN1, $1, $2, $3, $4))
-endef
 
 TERM_GREEN="\033[0;32m"
 TERM_NO_COLOR="\033[0m"
 TERM_LIGHT_GREEN="\033[1;32m"
 
 
-stow: default
+installfiles:
 	@echo $(TERM_LIGHT_GREEN)'* INSTALLING BINARIES *'$(TERM_NO_COLOR)
-	if test -n "$(BINFILES)"; then \
-		mkdir -p $(STOWPREFIX)/bin; \
-		install --mode 755 $(BINFILES) $(STOWPREFIX)/bin; \
+	@if test -n "$(BINFILES)"; then \
+		mkdir -vp $(INSTALLFILES_PREFIX)/bin; \
+		install -v --mode 755 $(BINFILES) $(INSTALLFILES_PREFIX)/bin; \
 	fi
 	@echo $(TERM_LIGHT_GREEN)'* INSTALLING LIBS *'$(TERM_NO_COLOR)
-	if test -n "$(LIBFILES)"; then \
-		mkdir -p $(STOWPREFIX)/lib; \
-		install --mode 755 $(LIBFILES) $(STOWPREFIX)/lib; \
+	@if test -n "$(LIBFILES)"; then \
+		mkdir -vp $(INSTALLFILES_PREFIX)/lib; \
+		install -v --mode 755 $(LIBFILES) $(INSTALLFILES_PREFIX)/lib; \
 	fi
 	@echo $(TERM_LIGHT_GREEN)'* INSTALLING HEADERS *'$(TERM_NO_COLOR)
-	if test -n "$(INCLUDEDIR)"; then \
-		mkdir -p $(STOWPREFIX)/include; \
-		cd $(INCLUDEDIR) && \
-		install --mode 644 `find -regex '^.*\.h'`\
-		  $(STOWPREFIX)/include; \
+	@if test -d "$(INCLUDEDIR)"; then \
+		mkdir -vp $(INSTALLFILES_PREFIX)/include; \
+		(cd $(INCLUDEDIR) && tar cf -  `find -regex '.*\.\(h\|hpp\|mod\)'` )  \
+		  | (cd $(INSTALLFILES_PREFIX)/include && tar xvf - ) \
 	fi
 	@echo $(TERM_LIGHT_GREEN)'* INSTALLING VERBATIM *'$(TERM_NO_COLOR)
-	if test -n "$(VERBATIMDIR)"; then \
-		mkdir -p $(STOWPREFIX); \
-		cp -TLr $(VERBATIMDIR) $(STOWPREFIX); \
+	@if test -d "$(VERBATIMDIR)"; then \
+	    mkdir -vp $(INSTALLFILES_PREFIX); \
+	    ( cd $(VERBATIMDIR) && tar -hcf - \
+	     `find . '!' \( -type d  \( -name .svn -o -name .git \) -prune \) -type f -o -type l`) |\
+	   (cd $(INSTALLFILES_PREFIX) && tar xvf - ) \
 	fi
-	@echo $(TERM_LIGHT_GREEN)'* STOWING *'$(TERM_NO_COLOR)
-	cd $(STOWBASE) && stow $(STOWDIR)
+
+deb: INSTALLFILES_PREFIX := $(DEBDIR)$(DEBPREFIX)
+deb: installfiles
+	@echo $(TERM_LIGHT_GREEN)'* Making DEB *'$(TERM_NO_COLOR)
+	mkdir -pv $(DEBDIR)/DEBIAN
+	echo Package: $(PROJECT) > $(DEBDIR)/DEBIAN/control
+	echo Version: $(VERSION)-$(DEBPKGVERSION) >> $(DEBDIR)/DEBIAN/control
+	echo Architecture: `uname -m | sed -e 's/i686/i386/'` >> $(DEBDIR)/DEBIAN/control
+	if [ -f "$(DEBCONTROL)" ] ; then cat $(DEBCONTROL) >> $(DEBDIR)/DEBIAN/control; \
+	else \
+	  echo Maintainer: unkown >> $(DEBDIR)/DEBIAN/control; \
+	  echo Description: none >> $(DEBDIR)/DEBIAN/control; \
+	fi
+	fakeroot dpkg-deb --build $(DEBDIR) $(DEBDISTDIR)/$(PROJECT)_$(VERSION)-$(DEBPKGVERSION).deb
+
+debinstall: deb
+	sudo dpkg -i  $(DEBDISTDIR)/$(PROJECT)_$(VERSION)-$(DEBPKGVERSION).deb
+
+stow: INSTALLFILES_PREFIX := $(STOWPREFIX)
+stow: installfiles
+
+install: INSTALLFILES_PREFIX := $(PREFIX)
+install: installfiles
 
 
 ## Developer targets
@@ -359,3 +352,61 @@ dist: $(DISTFILES)
 	@echo $(TERM_LIGHT_GREEN)'* TARRING IT UP *'$(TERM_NO_COLOR)
 	cd dist &&               \
 	tar  --lzma -cvf $(DISTPATH)/$(PROJVER).tar.lzma $(PROJVER)
+
+
+####################
+## IMPLICIT RULES ##
+####################
+
+## These create targets to build C, C++, Fortran, and Objective C
+
+# C
+$(BUILDDIR)/%.o: $(SRCDIR)/%.c
+	@mkdir -vp $(dir $(@))
+	$(cc) $(CFLAGS) -c $< -o $@
+
+# C++
+$(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
+	@mkdir -vp $(dir $(@))
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# C++ again
+$(BUILDDIR)/%.o: $(SRCDIR)/%.cc
+	@mkdir -vp $(dir $(@))
+	$(CC) $(CPPFLAGS) -c $< -o $@
+
+# Fortran 95
+$(BUILDDIR)/%.o: $(SRCDIR)/%.f95
+	@mkdir -vp $(dir $(@))
+	$(f95) -J$(INCLUDEDIR) -c $< -o $@
+
+# Objective C
+$(BUILDDIR)/%.o: $(SRCDIR)/%.m
+	@mkdir -vp $(dir $(@))
+	$(objcc) $(OBJCFLAGS) -c $< -o $@
+
+
+## Rules to generate dependecy info
+## Hopefully gfortran will do this too, soon
+
+$(DEPDIR)/%.c.d: $(SRCDIR)/%.c
+	@mkdir -pv $(dir $@)
+	echo -n $(dir $<)  > $@
+	$(cc) $(CFLAGS) -MM  $< >> $@
+
+$(DEPDIR)/%.cpp.d: $(SRCDIR)/%.cpp
+	@mkdir -pv $(dir $@)
+	echo -n $(dir $<)  > $@
+	$(CC) $(CPPFLAGS) -MM  $< >> $@
+
+$(DEPDIR)/%.cc.d: $(SRCDIR)/%.cc
+	@mkdir -pv $(dir $@)
+	echo -n $(dir $<)  > $@
+	$(CC) $(CPPFLAGS) -MM  $< >> $@
+
+########################
+## DEPENDENCY INCLUDE ##
+########################
+## Include the auto-generated dependencies
+-include $(DEPFILES)
+
