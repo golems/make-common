@@ -88,6 +88,12 @@ ifndef SRCDIR
 SRCDIR := $(shell if [ -d ./src ]; then echo ./src; else echo .; fi)
 endif
 
+# must set manually
+#ifndef LISPDIR
+#LISPDIR := $(shell if [ -d ./lisp ]; then echo ./lisp; else echo .; fi)
+#endif
+
+LISPPREFIX ?= $(INSTALLFILES_PREFIX)/share/common-lisp/
 
 ifndef BUILDDIR
 # ./src if it exists, else .
@@ -247,6 +253,7 @@ env:
 	@echo VERSION: $(VERSION)
 	@echo PREFIX: $(PREFIX)
 	@echo SRCDIR: $(SRCDIR)
+	@echo LISPDIR: $(LISPDIR)
 	@echo INCLUDEDIR: $(INCLUDEDIR)
 	@echo BUILDDIR: $(BUILDDIR)
 	@echo LIBDIR: $(LIBDIR)
@@ -299,6 +306,15 @@ installfiles:
 		(cd $(INCLUDEDIR) && tar cf -  `find -regex '.*\.\(h\|hpp\|mod\)'` )  \
 		  | (cd $(INSTALLFILES_PREFIX)/include && tar xvf - ) \
 	fi
+	@if test -d "$(LISPDIR)"; then \
+		echo $(TERM_LIGHT_GREEN)'* INSTALLING LISP FILES*'$(TERM_NO_COLOR); \
+		mkdir -pv $(LISPPREFIX)/source/$(PROJECT); \
+		mkdir -pv $(LISPPREFIX)/systems; \
+		(cd $(LISPDIR) && tar cf -  `find -regex '.*\.\(lisp\|asd\)'` )  \
+		  | (cd $(LISPPREFIX)/source/$(PROJECT) && tar xvf - ) 	; \
+		(cd $(LISPPREFIX)/systems && find ../source/$(PROJECT) -name '*.asd' \
+			-exec ln -vs '{}' ';' ); \
+	fi
 	@echo $(TERM_LIGHT_GREEN)'* INSTALLING VERBATIM *'$(TERM_NO_COLOR)
 	@if test -d "$(VERBATIMDIR)"; then \
 	    mkdir -vp $(INSTALLFILES_PREFIX); \
@@ -326,6 +342,7 @@ debinstall: deb
 
 stow: INSTALLFILES_PREFIX := $(STOWPREFIX)
 stow: installfiles
+	cd $(STOWBASE) && stow $(STOWDIR)
 
 install: INSTALLFILES_PREFIX := $(PREFIX)
 install: installfiles
