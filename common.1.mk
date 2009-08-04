@@ -409,17 +409,17 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.m
 $(DEPDIR)/%.c.d: $(SRCDIR)/%.c
 	@mkdir -pv $(dir $@)
 	echo -n $(dir $<)  > $@
-	$(cc) $(CFLAGS) -MM  $< >> $@
+	$(cc) $(CFLAGS) -MM  $< >> $@ || rm $@
 
 $(DEPDIR)/%.cpp.d: $(SRCDIR)/%.cpp
 	@mkdir -pv $(dir $@)
 	echo -n $(dir $<)  > $@
-	$(CC) $(CPPFLAGS) -MM  $< >> $@
+	$(CC) $(CPPFLAGS) -MM  $< >> $@ || rm $@
 
 $(DEPDIR)/%.cc.d: $(SRCDIR)/%.cc
 	@mkdir -pv $(dir $@)
 	echo -n $(dir $<)  > $@
-	$(CC) $(CPPFLAGS) -MM  $< >> $@
+	$(CC) $(CPPFLAGS) -MM  $< >> $@ || rm $@
 
 ########################
 ## DEPENDENCY INCLUDE ##
