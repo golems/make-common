@@ -12,8 +12,9 @@
 
 
 ## USAGE:
+# # Your project Makefile
 #
-# Set the following environtment variables
+# # Set the following variables
 #
 # # Project Name
 # PROJECT := helloworld
@@ -24,17 +25,13 @@
 # # Binary Files
 # BINFILES := helloexample
 #
-# # Library files
-# LIBFILES := libhelloexample.so
+# # include this file
+# include /usr/share/make-common/common.1.mk
 #
-# # Files to tar up for distribution
-# DISTFILES := hello.c hello.h
-#
-# # Path to copy distribution tarball
-# DISTPATH := $(HOME)/prism/tarballs
-#
-# # Path to copy HTML Doxygen documentation
-# DOXPATH := $(HOME)/prism/public_html/dox
+# # link some stuff
+# $(call LINKLIB, foo, foo.o)
+# $(call LINKBIN, bar, bar.o bif.o, pthread rt)
+
 
 
 #######################
@@ -96,7 +93,7 @@ endif
 LISPPREFIX ?= $(INSTALLFILES_PREFIX)/share/common-lisp/
 
 ifndef BUILDDIR
-# ./src if it exists, else .
+# ./build if it exists, else .
 BUILDDIR := $(shell if [ -d ./build ]; then echo ./build; else echo .; fi)
 endif
 
@@ -144,7 +141,7 @@ LDFLAGS ?= -shared
 DEBDIR ?= debian
 
 # directory to put .deb files
-DEBDISTDIR ?= $(DISTPATH)
+DEBDISTDIR ?= .
 
 ifndef DEBCONTROLBASE
 DEBCONTROL := $(shell if [ -f control ]; then echo control; fi)
@@ -280,6 +277,7 @@ env:
 	@echo DEBDISTDIR: $(DEBDISTDIR)
 	@echo DEBCONTROLBASE: $(DEBCONTROLBASE)
 	@echo DEBPKGVERSION: $(DEBPKGVERSION)
+	@echo DISTPATH: $(DISTPATH)
 
 
 
@@ -351,24 +349,27 @@ install: installfiles
 ## Developer targets
 
 docul: doc
-	cp -Tr doc/html $(DOXPATH)/$(PROJECT)
+	if test -d "$(DOXPATH)"; then \
+	  cp -Tr doc/html $(DOXPATH)/$(PROJECT); \
+	elif test -n "$(DOXRSYNCSSH)"; then \
+	  cd doc/html && rsync --delete -rve ssh . $(DOXRSYNCSSH)/$(PROJECT);\
+	fi
 
-dist: $(DISTFILES)
-	mkdir -p dist/$(PROJVER)
-	@echo $(TERM_LIGHT_GREEN)'* MAKING DIRECTORY TREE *'$(TERM_NO_COLOR)
-	find $(DISTFILES) '!' -path '*/.svn/*' \
-	  '!' -path '*/.svn' \
-	  -type d \
-	  -exec mkdir -vp dist/$(PROJVER)/'{}' ';'
-	@echo $(TERM_LIGHT_GREEN)'* LINKING REAL FILES *'$(TERM_NO_COLOR)
-	find $(DISTFILES) '!' -path '*/.svn/*'  -type f \
-	  -exec ln -v '{}' dist/$(PROJVER)/'{}' ';'
-	@echo $(TERM_LIGHT_GREEN)'* COPYING SYMLINKS *'$(TERM_NO_COLOR)
-	find $(DISTFILES) '!' -path '*/.svn/*'  -type l \
-	  -exec cp -Pv '{}' dist/$(PROJVER)/'{}' ';'
-	@echo $(TERM_LIGHT_GREEN)'* TARRING IT UP *'$(TERM_NO_COLOR)
-	cd dist &&               \
-	tar  --lzma -cvf $(DISTPATH)/$(PROJVER).tar.lzma $(PROJVER)
+ifndef DISTFILES
+DISTFILES := $(shell if [ -d ./.svn ]; then svn list --recursive; fi )
+endif
+
+dist:
+	rm -rf $(BUILDDIR)/$(PROJVER)
+	mkdir -vp $(BUILDDIR)/$(PROJVER)
+	$(foreach file, $(DISTFILES), \
+	  if test -d $(file); \
+	    then mkdir -vp $(BUILDDIR)/$(PROJVER)/$(file); \
+	  else ln -v $(file) $(BUILDDIR)/$(PROJVER)/$(file);\
+	  fi && ) true
+	cd $(BUILDDIR) && tar --lzma -cvf $(PROJVER).tar.lzma $(PROJVER)
+	if test -n "$(DISTSCPPATH)"; then scp $(BUILDDIR)/$(PROJVER).tar.lzma $(DISTSCPPATH); fi
+
 
 
 ####################
