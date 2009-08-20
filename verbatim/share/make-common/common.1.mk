@@ -70,7 +70,7 @@ endif
 
 # Linker
 ifndef ld
-ld := ld
+ld := gcc
 endif
 
 ## default directories
@@ -409,17 +409,17 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.m
 
 $(DEPDIR)/%.c.d: $(SRCDIR)/%.c
 	@mkdir -pv $(dir $@)
-	echo -n $(dir $<)  > $@
+	@echo -n $(dir $<)  > $@
 	$(cc) $(CFLAGS) -MM  $< >> $@ || rm $@
 
 $(DEPDIR)/%.cpp.d: $(SRCDIR)/%.cpp
 	@mkdir -pv $(dir $@)
-	echo -n $(dir $<)  > $@
+	@echo -n $(dir $<)  > $@
 	$(CC) $(CPPFLAGS) -MM  $< >> $@ || rm $@
 
 $(DEPDIR)/%.cc.d: $(SRCDIR)/%.cc
 	@mkdir -pv $(dir $@)
-	echo -n $(dir $<)  > $@
+	@echo -n $(dir $<)  > $@
 	$(CC) $(CPPFLAGS) -MM  $< >> $@ || rm $@
 
 ########################
