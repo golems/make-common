@@ -181,17 +181,15 @@ STOWPREFIX := $(STOWBASE)/$(STOWDIR)
 ## as recommended by the GNU Make manual.
 DEPFILES := $(addprefix $(DEPDIR)/,$(addsuffix .d, $(filter %.c %.cpp %.cc %.m, $(SRCFILES))))
 
-#####################
-## FIXUP VARIABLES ##
-#####################
-
-LIBFILES := $(addprefix $(LIBDIR)/, $(LIBFILES))
-BINFILES := $(addprefix $(BINDIR)/, $(BINFILES))
-
 #######################
 ## PORTABILITY TESTS ##
 #######################
 # Not much here yet
+
+# Fetch platform name if we don't have it from elsewhere (we probably don't)
+ifndef PLATFORM
+PLATFORM := $(shell uname -s)
+endif
 
 # (courtesy of Jon Olson)
 ## OS X uses a different library extension, play nice
@@ -202,6 +200,13 @@ LDFLAGS := -lc
 else
 SHARED_LIB_SUFFIX := .so
 endif
+
+#####################
+## FIXUP VARIABLES ##
+#####################
+
+LIBFILES := $(addprefix $(LIBDIR)/, $(addsuffix $(SHARED_LIB_SUFFIX), $(LIBFILES)))
+BINFILES := $(addprefix $(BINDIR)/, $(BINFILES))
 
 
 ###############
@@ -214,7 +219,11 @@ endif
 ## ie with $(call LINKLIB, frob, foo.o bar.o) # gives libfrob.so
 define LINKLIB1
 $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX): $(2)
+ifeq ($(PLATFORM),Darwin)
+	$(cc) -dynamiclib $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX) $(2)
+else
 	$(ld) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX) $(2)
+endif
 endef
 
 # this def does the eval so the caller doesn't have to
