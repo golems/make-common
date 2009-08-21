@@ -12,16 +12,7 @@ VERSION := 1.0
 BINFILES := helloworldexample
 
 # Library files
-LIBFILES := libhelloworldexample.so
-
-# Files to tar up for distribution
-DISTFILES := Makefile hello.c helloworldexample.h
-
-# Path to copy distribution tarball
-DISTPATH := $(PWD)
-
-# Path to copy HTML Doxygen documentation
-#DOXPATH := $(HOME)/prism/public_html/dox
+SHAREDLIBS := helloworldexample
 
 
 ## define the default target before the include

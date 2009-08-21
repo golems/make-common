@@ -12,16 +12,8 @@ VERSION := 1.0
 BINFILES := hellofortranexample
 
 # Library files
-LIBFILES := libhellofortranexample.so libhellofortranexample.a
+SHAREDLIBS := hellofortranexample
 
-# Files to tar up for distribution
-DISTFILES := Makefile hello.c helloworldexample.h
-
-# Path to copy distribution tarball
-DISTPATH := $(PWD)
-
-# Path to copy HTML Doxygen documentation
-#DOXPATH := $(HOME)/prism/public_html/dox
 
 default: all
 

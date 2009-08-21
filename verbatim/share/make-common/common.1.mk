@@ -205,7 +205,7 @@ endif
 ## FIXUP VARIABLES ##
 #####################
 
-LIBFILES := $(addprefix $(LIBDIR)/, $(addsuffix $(SHARED_LIB_SUFFIX), $(LIBFILES)))
+LIBFILES := $(addprefix $(LIBDIR)/lib, $(addsuffix $(SHARED_LIB_SUFFIX), $(SHAREDLIBS)))
 BINFILES := $(addprefix $(BINDIR)/, $(BINFILES))
 
 
