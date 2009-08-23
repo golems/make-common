@@ -314,13 +314,13 @@ installfiles:
 		  | (cd $(INSTALLFILES_PREFIX)/include && tar xvf - ) \
 	fi
 	@if test -d "$(LISPDIR)"; then \
-		echo $(TERM_LIGHT_GREEN)'* INSTALLING LISP FILES*'$(TERM_NO_COLOR); \
+		echo $(TERM_LIGHT_GREEN)'* INSTALLING LISP FILES *'$(TERM_NO_COLOR); \
 		mkdir -pv $(LISPPREFIX)/source/$(PROJECT); \
 		mkdir -pv $(LISPPREFIX)/systems; \
 		(cd $(LISPDIR) && tar cf -  `find -regex '.*\.\(lisp\|asd\)'` )  \
 		  | (cd $(LISPPREFIX)/source/$(PROJECT) && tar xvf - ) 	; \
 		(cd $(LISPPREFIX)/systems && find ../source/$(PROJECT) -name '*.asd' \
-			-exec ln -vs '{}' ';' ); \
+			-exec ln -fvs '{}' ';' ); \
 	fi
 	@echo $(TERM_LIGHT_GREEN)'* INSTALLING VERBATIM *'$(TERM_NO_COLOR)
 	@if test -d "$(VERBATIMDIR)"; then \

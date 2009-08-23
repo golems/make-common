@@ -18,4 +18,4 @@ INCLUDEDIR := /dev/null
 include ./common.1.mk
 
 clean:
-	rm -rfv *.tar.lzma dist *.deb .dep debian
+	rm -rfv *.tar.lzma dist *.deb .dep debian $(PROJECT)-$(VERSION)
