@@ -297,6 +297,7 @@ TERM_LIGHT_GREEN="\033[1;32m"
 
 
 installfiles:
+	@echo $(TERM_LIGHT_GREEN)'* INSTALLING TO $(INSTALLFILES_PREFIX) *'$(TERM_NO_COLOR)
 	@echo $(TERM_LIGHT_GREEN)'* INSTALLING BINARIES *'$(TERM_NO_COLOR)
 	@if test -n "$(BINFILES)"; then \
 		mkdir -vp $(INSTALLFILES_PREFIX)/bin; \
@@ -329,7 +330,11 @@ installfiles:
 	     `find . '!' \( -type d  \( -name .svn -o -name .git \) -prune \) -type f -o -type l`) |\
 	   (cd $(INSTALLFILES_PREFIX) && tar xvf - ) \
 	fi
-
+	@if test -d ".svn"; then \
+		echo $(TERM_LIGHT_GREEN)'* NOTING SVN REVISION *'$(TERM_NO_COLOR); \
+		mkdir -pv $(INSTALLFILES_PREFIX)/share/$(PROJECT);             \
+		svn info > $(INSTALLFILES_PREFIX)/share/$(PROJECT)/svn-info;   \
+	fi
 deb: INSTALLFILES_PREFIX := $(DEBDIR)$(DEBPREFIX)
 deb: installfiles
 	@echo $(TERM_LIGHT_GREEN)'* Making DEB *'$(TERM_NO_COLOR)
