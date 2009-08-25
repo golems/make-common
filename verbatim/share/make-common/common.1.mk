@@ -181,6 +181,12 @@ STOWPREFIX := $(STOWBASE)/$(STOWDIR)
 ## as recommended by the GNU Make manual.
 DEPFILES := $(addprefix $(DEPDIR)/,$(addsuffix .d, $(filter %.c %.cpp %.cc %.m, $(SRCFILES))))
 
+## Use the version control system to figure which files are canonical
+## TODO: support git
+ifndef DISTFILES
+DISTFILES = $(shell if [ -d ./.svn ]; then svn list --recursive; fi )
+endif
+
 #######################
 ## PORTABILITY TESTS ##
 #######################
@@ -369,10 +375,6 @@ docul: doc
 	  cd doc/html && rsync --delete -rve ssh . $(DOXRSYNCSSH)/$(PROJECT);\
 	fi
 
-ifndef DISTFILES
-DISTFILES := $(shell if [ -d ./.svn ]; then svn list --recursive; fi )
-endif
-
 dist:
 	rm -rf $(BUILDDIR)/$(PROJVER)
 	mkdir -vp $(BUILDDIR)/$(PROJVER)
@@ -410,7 +412,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.cc
 # Fortran 95
 $(BUILDDIR)/%.o: $(SRCDIR)/%.f95
 	@mkdir -vp $(dir $(@))
-	$(f95) -J$(INCLUDEDIR) -c $< -o $@
+	$(f95) $(FFLAGS) -c $< -o $@
 
 # Objective C
 $(BUILDDIR)/%.o: $(SRCDIR)/%.m
