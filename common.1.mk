@@ -73,6 +73,11 @@ ifndef ld
 ld := gcc
 endif
 
+# GNU find
+ifndef find
+find := $(shell which gfind || which find)
+endif
+
 ## default directories
 
 ifndef INCLUDEDIR
@@ -154,7 +159,7 @@ DEBPREFIX ?= /usr
 ## default source files
 
 ifndef SRCFILES
-SRCFILES := $(shell find .  \( -type d \( -name .svn -o -name .git \)  -prune \)  -o -regex '.*\.\(c\|cpp\|f95\)' -print)
+SRCFILES := $(shell $(find) .  \( -type d \( -name .svn -o -name .git \)  -prune \)  -o -regex '.*\.\(c\|cpp\|f95\)' -print)
 # Maybe svn list -R | egrep '^.*\.(c|cpp|f95)$'
 # It would be nicer (40x) on a cold disk cache, but slower (4x) otherwise
 # Would also fail if files are not yet svn add'ed
@@ -195,6 +200,7 @@ endif
 # Fetch platform name if we don't have it from elsewhere (we probably don't)
 ifndef PLATFORM
 PLATFORM := $(shell uname -s)
+OS := $(shell uname -o 2>/dev/null)
 endif
 
 # (courtesy of Jon Olson)
@@ -207,13 +213,43 @@ else
 SHARED_LIB_SUFFIX := .so
 endif
 
+##############################
+## MAKE GNULIB GO IF NEEDED ##
+##############################
+
+# The world would be a much better place of BSD had won. Fuck GNU.
+
+ifeq (,$(findstring GNU,$(OS)))
+# System isn't GNU, set GNU deps
+ifdef GNULIB_MODULES
+GNULIB_MODULES += progname
+GNUDEPS := gnulib/gllib/libgnu.a gnulib/gnulib.h
+GNU_CFLAGS := -Ignulib/gllib -include gnulib/gnulib.h
+GNU_LDFLAGS := -Lgnulib/gllib -lgnu
+endif
+
+gnulib/gllib/libgnu.a:
+	rm -rf gnulib
+	gnulib-tool --create-testdir --dir=gnulib $(GNULIB_MODULES)
+	cd gnulib && ./configure
+	make -C gnulib
+
+gnulib/gnulib.h:
+	$(foreach module,$(GNULIB_MODULES),$(shell gnulib-tool --extract-include-directive $(module) >>gnulib/gnulib.h))
+
+LD_DYNAMIC := -dynamic
+LD_STATIC := -static
+else
+LD_DYNAMIC := -Bdynamic
+LD_STATIC := -Bstatic
+endif
+
 #####################
 ## FIXUP VARIABLES ##
 #####################
 
 LIBFILES := $(addprefix $(LIBDIR)/lib, $(addsuffix $(SHARED_LIB_SUFFIX), $(SHAREDLIBS)))
 BINFILES := $(addprefix $(BINDIR)/, $(BINFILES))
-
 
 ###############
 ## FUNCTIONS ##
@@ -224,11 +260,11 @@ BINFILES := $(addprefix $(BINDIR)/, $(BINFILES))
 ## call with  $(call LINKLIB, name_of_lib, list of object files)
 ## ie with $(call LINKLIB, frob, foo.o bar.o) # gives libfrob.so
 define LINKLIB1
-$(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX): $(2)
+$(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX): $(GNUDEPS) $(2)
 ifeq ($(PLATFORM),Darwin)
-	$(cc) -dynamiclib $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX) $(2)
+	$(cc) -dynamiclib $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX) $(2)
 else
-	$(ld) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX) $(2)
+	$(ld) $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX) $(2)
 endif
 endef
 
@@ -241,11 +277,12 @@ endef
 ## call with $(call LINKBIN, name_of_binary, object files, shared libs, static libs)
 ## ie  $(call LINKBIN frob, foo.o, bar, bif)
 define LINKBIN1
-$(strip $(1)): $(2)  $(addsuffix .a, $(addprefix lib, $(4)))
+$(strip $(1)): $(GNUDEPS) $(2)  $(addsuffix .a, $(addprefix lib, $(4)))
 	$(cc) $(CFLAGS) -o $(strip $(1)) $(2) \
 	  $(addprefix -L, $(LIBDIRS))  \
-	  $(if $(strip $(4)), -Wl$(comma)-Bstatic) $(addprefix -l, $(strip $(4)))  \
-	  $(if $(strip $(3)), -Wl$(comma)-Bdynamic) $(addprefix -l, $(3)) $(foo)
+	  $(if $(strip $(4)), -Wl$(comma)$(LD_STATIC)) $(addprefix -l, $(strip $(4)))  \
+	  $(if $(strip $(3)), -Wl$(comma)$(LD_DYNAMIC)) $(addprefix -l, $(3)) $(foo) \
+	  $(GNU_LDFLAGS)
 endef
 
 # this def does the eval so the caller doesn't have to
@@ -317,23 +354,23 @@ installfiles:
 	@echo $(TERM_LIGHT_GREEN)'* INSTALLING HEADERS *'$(TERM_NO_COLOR)
 	@if test -d "$(INCLUDEDIR)"; then \
 		mkdir -vp $(INSTALLFILES_PREFIX)/include; \
-		(cd $(INCLUDEDIR) && tar cf -  `find -regex '.*\.\(h\|hpp\|mod\)'` )  \
+		(cd $(INCLUDEDIR) && tar cf -  `$(find) -regex '.*\.\(h\|hpp\|mod\)'` )  \
 		  | (cd $(INSTALLFILES_PREFIX)/include && tar xvf - ) \
 	fi
 	@if test -d "$(LISPDIR)"; then \
 		echo $(TERM_LIGHT_GREEN)'* INSTALLING LISP FILES *'$(TERM_NO_COLOR); \
 		mkdir -pv $(LISPPREFIX)/source/$(PROJECT); \
 		mkdir -pv $(LISPPREFIX)/systems; \
-		(cd $(LISPDIR) && tar cf -  `find -regex '.*\.\(lisp\|asd\)'` )  \
+		(cd $(LISPDIR) && tar cf -  `$(find) -regex '.*\.\(lisp\|asd\)'` )  \
 		  | (cd $(LISPPREFIX)/source/$(PROJECT) && tar xvf - ) 	; \
-		(cd $(LISPPREFIX)/systems && find ../source/$(PROJECT) -name '*.asd' \
+		(cd $(LISPPREFIX)/systems && $(find) ../source/$(PROJECT) -name '*.asd' \
 			-exec ln -fvs '{}' ';' ); \
 	fi
 	@echo $(TERM_LIGHT_GREEN)'* INSTALLING VERBATIM *'$(TERM_NO_COLOR)
 	@if test -d "$(VERBATIMDIR)"; then \
 	    mkdir -vp $(INSTALLFILES_PREFIX); \
 	    ( cd $(VERBATIMDIR) && tar -hcf - \
-	     `find . '!' \( -type d  \( -name .svn -o -name .git \) -prune \) -type f -o -type l`) |\
+	     `$(find) . '!' \( -type d  \( -name .svn -o -name .git \) -prune \) -type f -o -type l`) |\
 	   (cd $(INSTALLFILES_PREFIX) && tar xvf - ) \
 	fi
 	@if test -d ".svn"; then \
@@ -397,17 +434,17 @@ dist:
 # C
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	@mkdir -vp $(dir $(@))
-	$(cc) $(CFLAGS) -c $< -o $@
+	$(cc) $(GNU_CFLAGS) $(CFLAGS) -c $< -o $@
 
 # C++
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -vp $(dir $(@))
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(GNU_CFLAGS) $(CFLAGS) -c $< -o $@
 
 # C++ again
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cc
 	@mkdir -vp $(dir $(@))
-	$(CC) $(CPPFLAGS) -c $< -o $@
+	$(CC) $(GNU_CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 # Fortran 95
 $(BUILDDIR)/%.o: $(SRCDIR)/%.f95
@@ -417,7 +454,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.f95
 # Objective C
 $(BUILDDIR)/%.o: $(SRCDIR)/%.m
 	@mkdir -vp $(dir $(@))
-	$(objcc) $(OBJCFLAGS) -c $< -o $@
+	$(objcc) $(GNU_CFLAGS) $(OBJCFLAGS) -c $< -o $@
 
 
 ## Rules to generate dependecy info
@@ -425,17 +462,17 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.m
 
 $(DEPDIR)/%.c.d: $(SRCDIR)/%.c
 	@mkdir -pv $(dir $@)
-	@echo -n $(dir $<)  > $@
+	@/bin/echo -n $(dir $<)  > $@
 	$(cc) $(CFLAGS) -MM  $< >> $@ || rm $@
 
 $(DEPDIR)/%.cpp.d: $(SRCDIR)/%.cpp
 	@mkdir -pv $(dir $@)
-	@echo -n $(dir $<)  > $@
+	@/bin/echo -n $(dir $<)  > $@
 	$(CC) $(CPPFLAGS) -MM  $< >> $@ || rm $@
 
 $(DEPDIR)/%.cc.d: $(SRCDIR)/%.cc
 	@mkdir -pv $(dir $@)
-	@echo -n $(dir $<)  > $@
+	@/bin/echo -n $(dir $<)  > $@
 	$(CC) $(CPPFLAGS) -MM  $< >> $@ || rm $@
 
 ########################
