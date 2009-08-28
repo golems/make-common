@@ -384,7 +384,7 @@ deb: installfiles
 	mkdir -pv $(DEBDIR)/DEBIAN
 	echo Package: $(PROJECT) > $(DEBDIR)/DEBIAN/control
 	echo Version: $(VERSION)-$(DEBPKGVERSION) >> $(DEBDIR)/DEBIAN/control
-	echo Architecture: `uname -m | sed -e 's/i686/i386/'` >> $(DEBDIR)/DEBIAN/control
+	echo Architecture: `uname -m | sed -e 's/i686/i386/; s/x86_64/amd64/'` >> $(DEBDIR)/DEBIAN/control
 	if [ -f "$(DEBCONTROL)" ] ; then cat $(DEBCONTROL) >> $(DEBDIR)/DEBIAN/control; \
 	else \
 	  echo Maintainer: unkown >> $(DEBDIR)/DEBIAN/control; \
