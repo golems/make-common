@@ -112,6 +112,10 @@ ifndef BINDIR
 BINDIR := $(shell if [ -d $(BUILDDIR)/bin ]; then echo $(BUILDDIR)/bin; else echo $(BUILDDIR); fi)
 endif
 
+ifndef ARCH
+ARCH := $(shell uname -m |sed -e 's/x86_64/amd64/')
+endif
+
 # directory to search for library includes
 LIBDIRS ?= $(LIBDIR)
 
@@ -125,6 +129,11 @@ DISTPATH ?= .
 
 # C
 CFLAGS ?= -g -I$(INCLUDEDIR)
+
+# AMD64 requires PIC for shared libs (so just use it everywhere)
+ifeq ($(ARCH),amd64)
+CFLAGS += -fPIC
+endif
 
 # C++
 CPPFLAGS ?= $(CFLAGS)
