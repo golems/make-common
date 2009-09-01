@@ -448,7 +448,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 # C++
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -vp $(dir $(@))
-	$(CC) $(GNU_CFLAGS) $(CFLAGS) -c $< -o $@
+	$(CC) $(GNU_CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 # C++ again
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cc
