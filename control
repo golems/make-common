@@ -1,4 +1,3 @@
-Depends: build-essential
 Maintainer: Neil T. Dantam
 Description: A general makefile to simplify project builds under linux and debian
 Depends: build-essential, fakeroot
