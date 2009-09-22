@@ -2,7 +2,7 @@
 PROJECT := make-common
 
 # Project Version
-VERSION := 1.3.3
+VERSION := 1.3.4
 
 # Files to tar up for distribution
 #DISTFILES := common.1.mk Makefile verbatim README example
