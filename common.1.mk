@@ -168,7 +168,7 @@ DEBPREFIX ?= /usr
 ## default source files
 
 ifndef SRCFILES
-SRCFILES := $(shell $(find) .  \( -type d \( -name .svn -o -name .git \)  -prune \)  -o -regex '.*\.\(c\|cpp\|f95\)' -print)
+SRCFILES := $(shell $(find) .  \( -type d \( -name .svn -o -name .git \)  -prune \)  -o -regex '.*\.\(c\|cpp\|f90|f95\)' -print)
 # Maybe svn list -R | egrep '^.*\.(c|cpp|f95)$'
 # It would be nicer (40x) on a cold disk cache, but slower (4x) otherwise
 # Would also fail if files are not yet svn add'ed
@@ -459,6 +459,11 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.cc
 $(BUILDDIR)/%.o: $(SRCDIR)/%.f95
 	@mkdir -vp $(dir $(@))
 	$(f95) $(FFLAGS) -c $< -o $@
+
+$(BUILDDIR)/%.o: $(SRCDIR)/%.f90
+	@mkdir -vp $(dir $(@))
+	$(f95) $(FFLAGS) -c $< -o $@
+
 
 # Objective C
 $(BUILDDIR)/%.o: $(SRCDIR)/%.m
