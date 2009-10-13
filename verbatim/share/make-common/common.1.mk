@@ -273,13 +273,13 @@ $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX): $(GNUDEPS) $(2)
 ifeq ($(PLATFORM),Darwin)
 	$(cc) -dynamiclib $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX) $(2)
 else
-	$(ld) $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX) $(2)
+	$(ld) $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX)  $(2)
 endif
 endef
 
 # this def does the eval so the caller doesn't have to
 define LINKLIB
-$(eval $(call LINKLIB1, $1, $2))
+$(eval $(call LINKLIB1, $1, $(addprefix $(BUILDDIR)/, $2)))
 endef
 
 ## Convenience method for linking binaries
@@ -296,7 +296,7 @@ endef
 
 # this def does the eval so the caller doesn't have to
 define LINKBIN
-$(eval $(call LINKBIN1, $1, $2, $3, $4))
+$(eval $(call LINKBIN1, $1, $(addprefix $(BUILDDIR)/, $2), $3, $4))
 endef
 
 
