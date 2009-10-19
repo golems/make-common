@@ -401,8 +401,10 @@ deb: installfiles
 	fi
 	fakeroot dpkg-deb --build $(DEBDIR) $(DEBDISTDIR)/$(PROJECT)_$(VERSION)-$(DEBPKGVERSION).deb
 
+debinstall: DEBTEMP := $(shell tempfile)
 debinstall: deb
-	sudo dpkg -i  $(DEBDISTDIR)/$(PROJECT)_$(VERSION)-$(DEBPKGVERSION).deb
+	cp $(DEBDISTDIR)/$(PROJECT)_$(VERSION)-$(DEBPKGVERSION).deb $(DEBTEMP)
+	sudo dpkg -i $(DEBTEMP)
 
 stow: INSTALLFILES_PREFIX := $(STOWPREFIX)
 stow: installfiles
