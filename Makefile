@@ -2,7 +2,7 @@
 PROJECT := make-common
 
 # Project Version
-VERSION := 1.3.6
+VERSION := 1.3.7
 
 # Files to tar up for distribution
 #DISTFILES := common.1.mk Makefile verbatim README example
@@ -18,4 +18,4 @@ INCLUDEDIR := /dev/null
 include ./common.1.mk
 
 clean:
-	rm -rfv *.tar.lzma dist *.deb .dep debian $(PROJECT)-$(VERSION)
+	rm -rfv *.tar.* dist *.deb .dep debian $(PROJECT)-$(VERSION)

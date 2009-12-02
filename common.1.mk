@@ -431,8 +431,8 @@ dist:
 	    then mkdir -vp $(BUILDDIR)/$(PROJVER)/$(file); \
 	  else ln -v $(file) $(BUILDDIR)/$(PROJVER)/$(file);\
 	  fi && ) true
-	cd $(BUILDDIR) && tar --lzma -cvf $(PROJVER).tar.lzma $(PROJVER)
-	if test -n "$(DISTSCPPATH)"; then scp $(BUILDDIR)/$(PROJVER).tar.lzma $(DISTSCPPATH); fi
+	cd $(BUILDDIR) && tar -cjvf $(PROJVER).tar.bz2 $(PROJVER)
+	if test -n "$(DISTSCPPATH)"; then scp $(BUILDDIR)/$(PROJVER).tar.bz2 $(DISTSCPPATH); fi
 
 
 
