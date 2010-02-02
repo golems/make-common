@@ -193,7 +193,7 @@ STOWPREFIX := $(STOWBASE)/$(STOWDIR)
 ## (gcc will generate dependency info for C and C++ files and spit out make rules)
 ## We use one dep file for each source file to minimize dependency regenerations
 ## as recommended by the GNU Make manual.
-DEPFILES := $(addprefix $(DEPDIR)/,$(addsuffix .d, $(filter %.c %.cpp %.cc %.m, $(SRCFILES))))
+DEPFILES := $(addprefix $(DEPDIR)/,$(addsuffix .d, $(filter %.c %.cpp %.cc %.m, $(patsubst $(SRCDIR)/%, %, $(SRCFILES)))))
 
 ## Use the version control system to figure which files are canonical
 ## TODO: support git
