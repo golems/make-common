@@ -286,7 +286,7 @@ endef
 ## call with $(call LINKBIN, name_of_binary, object files, shared libs, static libs)
 ## ie  $(call LINKBIN frob, foo.o, bar, bif)
 define LINKBIN1
-$(strip $(1)): $(GNUDEPS) $(2)  $(addsuffix .a, $(addprefix lib, $(4)))
+$(BINDIR)/$(strip $(1)): $(GNUDEPS) $(2)  $(addsuffix .a, $(addprefix lib, $(4)))
 	$(cc) $(CFLAGS) -o $(strip $(1)) $(2) \
 	  $(addprefix -L, $(LIBDIRS))  \
 	  $(if $(strip $(4)), -Wl$(comma)$(LD_STATIC)) $(addprefix -l, $(strip $(4)))  \
