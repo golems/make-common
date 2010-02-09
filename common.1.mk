@@ -406,6 +406,11 @@ debinstall: deb
 	cp $(DEBDISTDIR)/$(PROJECT)_$(VERSION)-$(DEBPKGVERSION).deb $(DEBTEMP)
 	sudo dpkg -i $(DEBTEMP)
 
+dpkgi: DEBTEMP := $(shell tempfile)
+dpkgi:
+	cp $(DEBDISTDIR)/$(PROJECT)_$(VERSION)-$(DEBPKGVERSION).deb $(DEBTEMP)
+	sudo dpkg -i $(DEBTEMP)
+
 stow: INSTALLFILES_PREFIX := $(STOWPREFIX)
 stow: installfiles
 	cd $(STOWBASE) && stow $(STOWDIR)
@@ -478,12 +483,12 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.m
 
 $(DEPDIR)/%.c.d: $(SRCDIR)/%.c
 	@mkdir -pv $(dir $@)
-	@/bin/echo -n $(dir $<)  > $@
+	@/bin/echo -n ./$(dir $<) | sed -s 's!$(SRCDIR)!$(BUILDDIR)!'  > $@
 	$(cc) $(CFLAGS) -MM  $< >> $@ || rm $@
 
 $(DEPDIR)/%.cpp.d: $(SRCDIR)/%.cpp
 	@mkdir -pv $(dir $@)
-	@/bin/echo -n $(dir $<)  > $@
+	@/bin/echo -n ./$(dir $<) | sed -s 's!$(SRCDIR)!$(BUILDDIR)!'  > $@
 	$(CC) $(CPPFLAGS) -MM  $< >> $@ || rm $@
 
 $(DEPDIR)/%.cc.d: $(SRCDIR)/%.cc
