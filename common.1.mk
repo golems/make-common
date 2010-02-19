@@ -278,7 +278,8 @@ $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX): $(GNUDEPS) $(2)
 ifeq ($(PLATFORM),Darwin)
 	$(cc) -dynamiclib $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX) $(2)
 else
-	$(ld) $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX)  $(2)
+	@echo [LD] $(1))$(SHARED_LIB_SUFFIX)
+	@$(ld) $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX)  $(2)
 endif
 endef
 
@@ -292,7 +293,8 @@ endef
 ## ie  $(call LINKBIN frob, foo.o, bar, bif)
 define LINKBIN1
 $(BINDIR)/$(strip $(1)): $(GNUDEPS) $(2)  $(addsuffix .a, $(addprefix lib, $(4)))
-	$(cc) $(CFLAGS) -o $(BINDIR)/$(strip $(1)) $(2) \
+	@echo [LD] $(1)
+	@$(cc) $(CFLAGS) -o $(BINDIR)/$(strip $(1)) $(2) \
 	  $(addprefix -L, $(LIBDIRS))  \
 	  $(if $(strip $(4)), -Wl$(comma)$(LD_STATIC)) $(addprefix -l, $(strip $(4)))  \
 	  $(if $(strip $(3)), -Wl$(comma)$(LD_DYNAMIC)) $(addprefix -l, $(3)) $(foo) \
