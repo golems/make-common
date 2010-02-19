@@ -128,16 +128,21 @@ DISTPATH ?= .
 ## default compiler flags
 
 # C
-CFLAGS ?= -g -I$(INCLUDEDIR)
-
+ifndef CFLAGS
+CFLAGS := -g  -Wall -Wextra -Wconversion -Wpointer-arith -Wfloat-equal -Wshadow -Wframe-larger-than=2048 -Wlarger-than=104857600 -Wwrite-strings -Wlogical-op -Wc++-compat -I$(INCLUDEDIR)
+endif
 # AMD64 requires PIC for shared libs (so just use it everywhere)
 ifeq ($(ARCH),amd64)
 CFLAGS += -fPIC
 endif
 
 # C++
-CPPFLAGS ?= $(CFLAGS)
-
+ifndef CPPFLAGS
+CFLAGS := -g  -Wall -Wextra -Wconversion -Wpointer-arith -Wfloat-equal -Wshadow -Wframe-larger-than=2048 -Wlarger-than=104857600 -Wwrite-strings -Wlogical-op -I$(INCLUDEDIR)
+endif
+ifeq ($(ARCH),amd64)
+CPPFLAGS += -fPIC
+endif
 
 # Objective-C
 OBJCFLAGS ?= $(CFLAGS)
@@ -450,26 +455,31 @@ dist:
 # C
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	@mkdir -vp $(dir $(@))
-	$(cc) $(GNU_CFLAGS) $(CFLAGS) -c $< -o $@
+	@echo [cc] $<
+	@$(cc) $(GNU_CFLAGS) $(CFLAGS) -c $< -o $@
 
 # C++
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -vp $(dir $(@))
-	$(CC) $(GNU_CFLAGS) $(CPPFLAGS) -c $< -o $@
+	@echo [CC] $<
+	@$(CC) $(GNU_CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 # C++ again
 $(BUILDDIR)/%.o: $(SRCDIR)/%.cc
 	@mkdir -vp $(dir $(@))
-	$(CC) $(GNU_CFLAGS) $(CPPFLAGS) -c $< -o $@
+	@echo [CC] $<
+	@$(CC) $(GNU_CFLAGS) $(CPPFLAGS) -c $< -o $@
 
 # Fortran 95
 $(BUILDDIR)/%.o: $(SRCDIR)/%.f95
 	@mkdir -vp $(dir $(@))
-	$(f95) $(FFLAGS) -c $< -o $@
+	@echo [fc] $<
+	@$(f95) $(FFLAGS) -c $< -o $@
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.f90
 	@mkdir -vp $(dir $(@))
-	$(f95) $(FFLAGS) -c $< -o $@
+	@echo [fc] $<
+	@$(f95) $(FFLAGS) -c $< -o $@
 
 
 # Objective C
@@ -484,17 +494,20 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.m
 $(DEPDIR)/%.c.d: $(SRCDIR)/%.c
 	@mkdir -pv $(dir $@)
 	@/bin/echo -n ./$(dir $<) | sed -s 's!$(SRCDIR)!$(BUILDDIR)!'  > $@
-	$(cc) $(CFLAGS) -MM  $< >> $@ || rm $@
+	@echo [DEP] $<
+	@$(cc) $(CFLAGS) -MM  $< >> $@ || rm $@
 
 $(DEPDIR)/%.cpp.d: $(SRCDIR)/%.cpp
 	@mkdir -pv $(dir $@)
 	@/bin/echo -n ./$(dir $<) | sed -s 's!$(SRCDIR)!$(BUILDDIR)!'  > $@
-	$(CC) $(CPPFLAGS) -MM  $< >> $@ || rm $@
+	@echo [DEP] $<
+	@$(CC) $(CPPFLAGS) -MM  $< >> $@ || rm $@
 
 $(DEPDIR)/%.cc.d: $(SRCDIR)/%.cc
 	@mkdir -pv $(dir $@)
 	@/bin/echo -n $(dir $<)  > $@
-	$(CC) $(CPPFLAGS) -MM  $< >> $@ || rm $@
+	@echo [DEP] $<
+	@$(CC) $(CPPFLAGS) -MM  $< >> $@ || rm $@
 
 ########################
 ## DEPENDENCY INCLUDE ##
