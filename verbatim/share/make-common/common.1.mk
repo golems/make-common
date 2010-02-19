@@ -129,7 +129,7 @@ DISTPATH ?= .
 
 # C
 ifndef CFLAGS
-CFLAGS := -g  -Wall -Wextra -Wconversion -Wpointer-arith -Wfloat-equal -Wshadow -Wframe-larger-than=2048 -Wlarger-than=104857600 -Wwrite-strings -Wlogical-op -Wc++-compat -I$(INCLUDEDIR)
+CFLAGS := -g  -Wc++-compat -Wall -Wextra -Wconversion -Wpointer-arith -Wfloat-equal -Wshadow -Wframe-larger-than=2048 -Wlarger-than=104857600 -Wwrite-strings -Wlogical-op -I$(INCLUDEDIR)
 endif
 # AMD64 requires PIC for shared libs (so just use it everywhere)
 ifeq ($(ARCH),amd64)
@@ -138,7 +138,7 @@ endif
 
 # C++
 ifndef CPPFLAGS
-CFLAGS := -g  -Wall -Wextra -Wconversion -Wpointer-arith -Wfloat-equal -Wshadow -Wframe-larger-than=2048 -Wlarger-than=104857600 -Wwrite-strings -Wlogical-op -I$(INCLUDEDIR)
+CPPFLAGS := -g  -Wall -Wextra -Wconversion -Wpointer-arith -Wfloat-equal -Wshadow -Wframe-larger-than=2048 -Wlarger-than=104857600 -Wwrite-strings -Wlogical-op -I$(INCLUDEDIR)
 endif
 ifeq ($(ARCH),amd64)
 CPPFLAGS += -fPIC
@@ -278,7 +278,7 @@ $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX): $(GNUDEPS) $(2)
 ifeq ($(PLATFORM),Darwin)
 	$(cc) -dynamiclib $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX) $(2)
 else
-	@echo [LD] $(1))$(SHARED_LIB_SUFFIX)
+	@echo [LD] $(1)$(SHARED_LIB_SUFFIX)
 	@$(ld) $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX)  $(2)
 endif
 endef
