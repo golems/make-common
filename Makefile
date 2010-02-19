@@ -7,7 +7,8 @@ VERSION := 1.4.0
 # Files to tar up for distribution
 #DISTFILES := common.1.mk Makefile verbatim README example
 
-INCLUDEDIR := /dev/null
+INCLUDEDIR := .not
+SRCDIR := .not
 
 # Path to copy distribution tarball
 #DISTPATH := $(PWD)
