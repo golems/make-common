@@ -278,7 +278,7 @@ $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX): $(GNUDEPS) $(2)
 ifeq ($(PLATFORM),Darwin)
 	$(cc) -dynamiclib $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX) $(2)
 else
-	@echo [LD] $(1)$(SHARED_LIB_SUFFIX)
+	@echo [ld] $(1)$(SHARED_LIB_SUFFIX)
 	@$(ld) $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX)  $(2)
 endif
 endef
@@ -293,7 +293,7 @@ endef
 ## ie  $(call LINKBIN frob, foo.o, bar, bif)
 define LINKBIN1
 $(BINDIR)/$(strip $(1)): $(GNUDEPS) $(2)  $(addsuffix .a, $(addprefix lib, $(4)))
-	@echo [LD] $(1)
+	@echo [ld] $(1)
 	@$(cc) $(CFLAGS) -o $(BINDIR)/$(strip $(1)) $(2) \
 	  $(addprefix -L, $(LIBDIRS))  \
 	  $(if $(strip $(4)), -Wl$(comma)$(LD_STATIC)) $(addprefix -l, $(strip $(4)))  \
@@ -412,6 +412,7 @@ debinstall: DEBTEMP := $(shell tempfile)
 debinstall: deb
 	cp $(DEBDISTDIR)/$(PROJECT)_$(VERSION)-$(DEBPKGVERSION).deb $(DEBTEMP)
 	sudo dpkg -i $(DEBTEMP)
+	rm $(DEBTEMP)
 
 dpkgi: DEBTEMP := $(shell tempfile)
 dpkgi:
