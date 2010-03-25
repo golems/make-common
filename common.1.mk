@@ -422,12 +422,12 @@ dpkgi:
 	sudo dpkg -i $(DEBTEMP)
 	rm $(DEBTEMP)
 
-stow: INSTALLFILES_PREFIX := $(STOWPREFIX)
-stow: installfiles
-	cd $(STOWBASE) && stow $(STOWDIR)
+#stow: INSTALLFILES_PREFIX := $(STOWPREFIX)
+#stow: installfiles
+#	cd $(STOWBASE) && stow $(STOWDIR)
 
-install: INSTALLFILES_PREFIX := $(PREFIX)
-install: installfiles
+#install: INSTALLFILES_PREFIX := $(PREFIX)
+#install: installfiles
 
 
 ## Developer targets
