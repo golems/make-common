@@ -278,16 +278,16 @@ BINFILES := $(addprefix $(BINDIR)/, $(BINFILES))
 define LINKLIB1
 $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX): $(GNUDEPS) $(2)
 ifeq ($(PLATFORM),Darwin)
-	$(cc) -dynamiclib $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX) $(2)
+	$(cc) -dynamiclib $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX) $(2) $(addprefix -l,$(3))
 else
 	@echo [ld] $(1)$(SHARED_LIB_SUFFIX)
-	@$(ld) $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX)  $(2)
+	@$(ld) $(GNU_LDFLAGS) $(LDFLAGS) -o $(LIBDIR)/lib$(strip $(1))$(SHARED_LIB_SUFFIX)  $(2) $(addprefix -l,$(3))
 endif
 endef
 
 # this def does the eval so the caller doesn't have to
 define LINKLIB
-$(eval $(call LINKLIB1, $1, $(addprefix $(BUILDDIR)/, $2)))
+$(eval $(call LINKLIB1, $1, $(addprefix $(BUILDDIR)/, $2), $3))
 endef
 
 ## Convenience method for linking binaries
