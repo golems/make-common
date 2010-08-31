@@ -57,6 +57,9 @@ ifndef f95
 f95 := gfortran
 endif
 
+ifndef f77
+f77 := gfortran
+endif
 
 # Objective C Compiler
 ifndef objcc
@@ -487,6 +490,10 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.f90
 	@echo [fc] $<
 	@$(f95) $(FFLAGS) -c $< -o $@
 
+$(BUILDDIR)/%.o: $(SRCDIR)/%.f
+	@mkdir -vp $(dir $(@))
+	@echo [fc] $<
+	@$(f77) $(FFLAGS) -c $< -o $@
 
 # Objective C
 $(BUILDDIR)/%.o: $(SRCDIR)/%.m
