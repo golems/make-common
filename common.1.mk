@@ -154,7 +154,7 @@ OBJCFLAGS ?= $(CFLAGS)
 
 
 # Fortran
-FFLAGS ?= -g -J$(INCLUDEDIR)
+FFLAGS ?= -g -fimplicit-none -J$(INCLUDEDIR)
 
 # Linker
 LDFLAGS ?= -shared
