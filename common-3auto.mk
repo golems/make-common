@@ -37,7 +37,7 @@ MC3_TARBALL ?= $(shell basename $(MC3_URL))
 endif
 
 ifndef MC3_SRCDIR
-MC3_SRCDIR ?= $(shell echo $(MC3_TARBALL) | sed -e 's!\.[^\.]*$$!!')
+MC3_SRCDIR ?= $(shell echo $(MC3_TARBALL) | sed -e 's!\.[^\.]*$$!!; s!\.tar$$!!')
 endif
 
 MC3_DEB := $(MC3_PACKAGE)_$(MC3_VERSION)-$(MC3_DEBVERSION).deb
