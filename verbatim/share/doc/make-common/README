@@ -23,6 +23,9 @@ The main targets make-common provides are:
 - `make debinstall': Creates and installs deb package
 
 
+Additionally, there is another makefile, common-3auto.mk, for makeing debs from
+3rdparty autotools packages.  Look at the example at the top of that file to see how it works.
+
 * FUNCTION LIST *
 
 LINKLIB(name_of_binary, object files, shared libs, static libs)
