@@ -46,7 +46,7 @@ MC3_DEB := $(MC3_PACKAGE)_$(MC3_VERSION)-$(MC3_DEBVERSION).deb
 
 $(MC3_DEB): $(MC3_SRCDIR) debian/DEBIAN/control
 	mkdir -p ./debian/usr
-	cd $< && ./configure --prefix=`pwd`/../debian/usr
+	cd $< && ./configure --prefix=`pwd`/../debian/usr $(MC3_CONFIGURE_FLAGS)
 	cd $< && make
 	cd $< && make install
 	fakeroot dpkg-deb --build debian ./$@
