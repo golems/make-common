@@ -40,24 +40,31 @@ ifndef MC3_SRCDIR
 MC3_SRCDIR ?= $(shell echo $(MC3_TARBALL) | sed -e 's!\.[^\.]*$$!!; s!\.tar$$!!')
 endif
 
-MC3_DEB := $(MC3_PACKAGE)_$(MC3_VERSION)-$(MC3_DEBVERSION).deb
+ifndef MC3_CONFIGURE_PREFIX
+MC3_CONFIGURE_PREFIX := `pwd`/../debian/usr
+endif
 
+ifdef MC3_INSTALL_PREFIX
+MC3_INSTALL_PREFIX_FLAG = prefix=$(MC3_INSTALL_PREFIX)
+endif
+
+MC3_DEB := $(MC3_PACKAGE)_$(MC3_VERSION)-$(MC3_DEBVERSION).deb
 
 
 $(MC3_DEB): $(MC3_SRCDIR) debian/DEBIAN/control
 	mkdir -p ./debian/usr
-	cd $< && ./configure --prefix=`pwd`/../debian/usr $(MC3_CONFIGURE_FLAGS)
+	cd $< && ./configure --prefix=$(MC3_CONFIGURE_PREFIX) $(MC3_CONFIGURE_FLAGS)
 	cd $< && make
-	cd $< && make install
+	cd $< && make $(MC3_INSTALL_PREFIX_FLAG) install
 	fakeroot dpkg-deb --build debian ./$@
 
 .PHONY: vars
 
 vars:
-	@echo MC3_URL: $(MC3_URL)
-	@echo MC3_TARBALL: $(MC3_TARBALL)
-	@echo MC3_SRCDIR: $(MC3_SRCDIR)
-	@echo MC3_DEB: $(MC3_DEB)
+	@echo MC3_URL: "$(MC3_URL)"
+	@echo MC3_TARBALL: "$(MC3_TARBALL)"
+	@echo MC3_SRCDIR: "$(MC3_SRCDIR)"
+	@echo MC3_DEB: "$(MC3_DEB)"
 
 $(MC3_TARBALL):
 	wget -c $(MC3_URL)
@@ -66,7 +73,7 @@ $(MC3_SRCDIR): $(MC3_TARBALL)
 	tar xavf $(MC3_TARBALL)
 
 
-debian/DEBIAN/control:
+debian/DEBIAN/control: Makefile
 	mkdir -p debian/DEBIAN
 	echo Package: $(MC3_PACKAGE) > $@
 	echo Version: $(MC3_VERSION)-$(MC3_DEBVERSION) >> $@
@@ -77,5 +84,7 @@ debian/DEBIAN/control:
 
 
 clean:
-	rm -rf debian $(MC3_TARBALL) $(MC3_SRCDIR)
+	rm -rf debian  $(MC3_SRCDIR) *.deb
 
+realclean:  clean
+	rm -rf debian  $(MC3_TARBALL)
