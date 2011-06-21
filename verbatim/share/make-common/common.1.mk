@@ -110,6 +110,11 @@ ifndef LIBDIR
 LIBDIR := $(shell if [ -d $(BUILDDIR)/lib ]; then echo $(BUILDDIR)/lib; else echo $(BUILDDIR); fi)
 endif
 
+ifndef FILTER
+# ./src if it exists, else .
+FILTER := $(shell if [ -f ./filter ]; then echo ". ./filter"; else echo ". /usr/share/make-common/filter"; fi)
+endif
+
 ifndef BINDIR
 # ./src if it exists, else .
 BINDIR := $(shell if [ -d $(BUILDDIR)/bin ]; then echo $(BUILDDIR)/bin; else echo $(BUILDDIR); fi)
@@ -127,6 +132,9 @@ PREFIX ?= /usr/local
 
 # Directory to put distribution tarball
 DISTPATH ?= .
+
+
+RSYNCINSTALL ?= rsync --delete -r -f "$(FILTER)"
 
 ## default compiler flags
 
@@ -351,6 +359,8 @@ env:
 	@echo DEBCONTROLBASE: $(DEBCONTROLBASE)
 	@echo DEBPKGVERSION: $(DEBPKGVERSION)
 	@echo DISTPATH: $(DISTPATH)
+	@echo FILTER: $(FILTER)
+	@echo RSYNCINSTALL: $(RSYNCINSTALL)
 
 
 
@@ -402,6 +412,7 @@ installfiles:
 deb: INSTALLFILES_PREFIX := $(DEBDIR)$(DEBPREFIX)
 deb: installfiles
 	@echo $(TERM_LIGHT_GREEN)'* Making DEB *'$(TERM_NO_COLOR)
+	if [ -d "$(ETCDIR)" ] ; then $(RSYNCINSTALL) "$(ETCDIR)" $(DEBDIR); fi
 	mkdir -pv $(DEBDIR)/DEBIAN
 	echo Package: $(PROJECT) > $(DEBDIR)/DEBIAN/control
 	echo Version: $(VERSION)-$(DEBPKGVERSION) >> $(DEBDIR)/DEBIAN/control
