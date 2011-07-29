@@ -17,7 +17,6 @@ See the various examples for how to use the common makefile.
 
 The main targets make-common provides are:
 - `make env': lists the variables set in the makefile
-- `make stow': Installs the package using stow
 - `make dist': Creates a distribution tarball for the package (figuring out the distfiles from svn list)
 - `make deb': Creates deb package
 - `make debinstall': Creates and installs deb package

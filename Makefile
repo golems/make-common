@@ -2,7 +2,7 @@
 PROJECT := make-common
 
 # Project Version
-VERSION := 1.6.5
+VERSION := 1.6.6
 
 # Files to tar up for distribution
 #DISTFILES := common.1.mk Makefile verbatim README example
@@ -16,7 +16,11 @@ SRCDIR := .not
 # Path to copy HTML Doxygen documentation
 #DOXPATH := $(HOME)/prism/public_html/dox
 
+default:
+	@echo "nothing to build"
+
 include ./common.1.mk
+
 
 clean:
 	rm -rfv *.tar.* dist *.deb .dep debian $(PROJECT)-$(VERSION)
