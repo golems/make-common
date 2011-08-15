@@ -425,10 +425,10 @@ deb: installfiles
 	fakeroot dpkg-deb --build $(DEBDIR) $(DEBDISTDIR)/$(PROJECT)_$(VERSION)-$(DEBPKGVERSION).deb
 
 debinstall: DEBTEMP := $(shell tempfile)
+debinstall: DEBFILE := $(DEBDISTDIR)/$(PROJECT)_$(VERSION)-$(DEBPKGVERSION).deb
 debinstall: deb
-	cp $(DEBDISTDIR)/$(PROJECT)_$(VERSION)-$(DEBPKGVERSION).deb $(DEBTEMP)
-	sudo dpkg -i $(DEBTEMP)
-	rm $(DEBTEMP)
+	sudo dpkg -i $(DEBFILE)
+	@if [ -n "$(RHOST)" ]; then scp $(DEBFILE) $(RHOST):/tmp && ssh $(RHOST) "sudo dpkg -i /tmp/$(DEBFILE); rm /tmp/$(DEBFILE)"; fi
 
 dpkgi: DEBTEMP := $(shell tempfile)
 dpkgi:
