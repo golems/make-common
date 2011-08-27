@@ -121,7 +121,7 @@ BINDIR := $(shell if [ -d $(BUILDDIR)/bin ]; then echo $(BUILDDIR)/bin; else ech
 endif
 
 ifndef ARCH
-ARCH := $(shell uname -m |sed -e 's/x86_64/amd64/')
+ARCH := $(shell uname -m |sed -e 's/x86_64/amd64/' -e 's/armv7l/armel/' -e 's/i686/i383/' )
 endif
 
 # directory to search for library includes
@@ -361,6 +361,7 @@ env:
 	@echo DISTPATH: $(DISTPATH)
 	@echo FILTER: $(FILTER)
 	@echo RSYNCINSTALL: $(RSYNCINSTALL)
+	@echo ARCH: $(ARCH)
 
 
 
@@ -416,7 +417,7 @@ deb: installfiles
 	mkdir -pv $(DEBDIR)/DEBIAN
 	echo Package: $(PROJECT) > $(DEBDIR)/DEBIAN/control
 	echo Version: $(VERSION)-$(DEBPKGVERSION) >> $(DEBDIR)/DEBIAN/control
-	echo Architecture: `uname -m | sed -e 's/i686/i386/; s/x86_64/amd64/'` >> $(DEBDIR)/DEBIAN/control
+	echo Architecture: $(ARCH) >> $(DEBDIR)/DEBIAN/control
 	if [ -f "$(DEBCONTROL)" ] ; then cat $(DEBCONTROL) >> $(DEBDIR)/DEBIAN/control; \
 	else \
 	  echo Maintainer: unkown >> $(DEBDIR)/DEBIAN/control; \
