@@ -121,7 +121,7 @@ BINDIR := $(shell if [ -d $(BUILDDIR)/bin ]; then echo $(BUILDDIR)/bin; else ech
 endif
 
 ifndef ARCH
-ARCH := $(shell uname -m |sed -e 's/x86_64/amd64/' -e 's/armv7l/armel/' -e 's/i686/i383/' )
+ARCH := $(shell uname -m |sed -e 's/x86_64/amd64/' -e 's/armv7l/armel/' -e 's/i686/i386/' )
 endif
 
 # directory to search for library includes
