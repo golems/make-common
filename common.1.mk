@@ -457,7 +457,7 @@ deb: installfiles
 	echo Architecture: $(ARCH) >> $(DEBDIR)/DEBIAN/control
 	if [ -f "$(DEBCONTROL)" ] ; then cat $(DEBCONTROL) >> $(DEBDIR)/DEBIAN/control; \
 	else \
-	  echo Maintainer: unkown >> $(DEBDIR)/DEBIAN/control; \
+	  echo Maintainer: unknown >> $(DEBDIR)/DEBIAN/control; \
 	  echo Description: none >> $(DEBDIR)/DEBIAN/control; \
 	fi
 	fakeroot dpkg-deb --build $(DEBDIR) $(DEBDISTDIR)/$(PROJECT)_$(VERSION)-$(DEBPKGVERSION).deb
