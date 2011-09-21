@@ -1,7 +1,8 @@
 ## Copyright (c) 2009-2011, Georgia Tech Research Corporation
 ## All rights reserved.
 ##
-## Author(s): Neil T. Dantam <ntd@gatech.edu>
+## Author(s): Neil T. Dantam   <ntd@gatech.edu>
+##            Jon Olson        <jon@damongran.net>
 ## Georgia Tech Humanoid Robotics Lab
 ## Under Direction of Prof. Mike Stilman <mstilman@cc.gatech.edu>
 ##
