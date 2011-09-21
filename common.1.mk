@@ -479,8 +479,8 @@ dpkgi:
 #stow: installfiles
 #	cd $(STOWBASE) && stow $(STOWDIR)
 
-#install: INSTALLFILES_PREFIX := $(PREFIX)
-#install: installfiles
+install: INSTALLFILES_PREFIX := $(PREFIX)
+install: installfiles
 
 
 ## Developer targets
